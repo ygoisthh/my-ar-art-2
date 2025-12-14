@@ -72,22 +72,23 @@
         animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.45; to: 0.65"
       </a-image>
 
-      <!-- 中：layer2 -->
-      <a-image id="L2"
-        src="./layer2.png"
-        width="0.7" 
-        height="0.7"
-        position="0 1 0.045"
-        opacity="0"
-        scale="0.96 0.96 0.96"
-        material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
-        animation__show="property: opacity; from: 0; to: 0.85; dur: 900; easing: easeOutCubic; startEvents: ar-show"
-        animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
-        animation__pulse="property: scale; dir: alternate; dur: 2100; easing: easeInOutSine; loop: true; from: 0.96 0.96 0.96; to: 1.04 1.04 1.04"
-        animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.70; to: 0.90"
-      </a-image>
+    <!-- 中：layer2（オフセット用の親を挟む） -->
+<a-entity id="L2Wrap" position="0.1 0.4 0">
+  <a-image id="L2"
+    src="./layer2.png"
+    width="0.7" height="0.7"
+    position="0 0 0.045"
+    opacity="0"
+    scale="0.96 0.96 0.96"
+    material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
+    animation__show="property: opacity; from: 0; to: 0.85; dur: 900; easing: easeOutCubic; startEvents: ar-show"
+    animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
+    animation__pulse="property: scale; dir: alternate; dur: 2100; easing: easeInOutSine; loop: true; from: 0.96 0.96 0.96; to: 1.04 1.04 1.04"
+    animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.70; to: 0.90">
+  </a-image>
+</a-entity>
 
-      <!-- 前：layer1 -->
+
       <!-- 前：layer1 -->
 <a-image id="L1"
   src="./layer1.png"
@@ -102,16 +103,6 @@
   animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 0.95 0.95 0.95; to: 1.05 1.05 1.05"
   animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.85; to: 1">
 </a-image>
-
-<!-- ★ 確認用の赤い基準点（L1と同じ親） -->
-<a-box
-  width="0.02"
-  height="0.02"
-  depth="0.02"
-  color="red"
-  position="0.3 -0.1 0.08">
-</a-box>
-
 
     </a-entity>
   </a-scene>
@@ -195,6 +186,7 @@
   </script>
 </body>
 </html>
+
 
 
 
