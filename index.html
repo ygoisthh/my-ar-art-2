@@ -120,6 +120,17 @@
       document.getElementById('L3'),
     ];
 
+    function setRenderOrder() {
+  const l3 = document.getElementById('L3');
+  const l2 = document.getElementById('L2');
+  const l1 = document.getElementById('L1');
+  if (l3?.object3D) l3.object3D.renderOrder = 1;
+  if (l2?.object3D) l2.object3D.renderOrder = 2;
+  if (l1?.object3D) l1.object3D.renderOrder = 3;
+}
+sceneEl.addEventListener('loaded', setRenderOrder, { once: true });
+
+
     function emitAll(name){ layers.forEach(el => el && el.emit(name)); }
 
     function waitForSystem(timeoutMs = 6000) {
@@ -186,6 +197,7 @@
   </script>
 </body>
 </html>
+
 
 
 
