@@ -65,7 +65,7 @@
         position="0 0.1 0.020"
         opacity="0"
         scale="0.97 0.97 0.97"
-        material="transparent: true; opacity: 1"
+        material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
         animation__show="property: opacity; from: 0; to: 0.60; dur: 900; easing: easeOutCubic; startEvents: ar-show"
         animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
         animation__pulse="property: scale; dir: alternate; dur: 2600; easing: easeInOutSine; loop: true; from: 0.97 0.97 0.97; to: 1.02 1.02 1.02"
@@ -75,12 +75,12 @@
       <!-- 中：layer2 -->
       <a-image id="L2"
         src="./layer2.png"
-        width="0.8" 
-        height="0.8"
+        width="0.7" 
+        height="0.7"
         position="0 0.25 0.045"
         opacity="0"
         scale="0.96 0.96 0.96"
-        material="transparent: true; opacity: 1"
+        material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
         animation__show="property: opacity; from: 0; to: 0.85; dur: 900; easing: easeOutCubic; startEvents: ar-show"
         animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
         animation__pulse="property: scale; dir: alternate; dur: 2100; easing: easeInOutSine; loop: true; from: 0.96 0.96 0.96; to: 1.04 1.04 1.04"
@@ -90,12 +90,12 @@
       <!-- 前：layer1 -->
       <a-image id="L1"
         src="./layer1.png"
-        width="0.65" 
-        height="0.65"
-        position="0 -0.5 0.070"
+        width="0.6" 
+        height="0.6"
+        position="0 -1 0.070"
         opacity="0"
         scale="0.95 0.95 0.95"
-        material="transparent: true; opacity: 1"
+       material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
         animation__show="property: opacity; from: 0; to: 1; dur: 900; easing: easeOutCubic; startEvents: ar-show"
         animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
         animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 0.95 0.95 0.95; to: 1.05 1.05 1.05"
@@ -184,6 +184,7 @@
   </script>
 </body>
 </html>
+
 
 
 
