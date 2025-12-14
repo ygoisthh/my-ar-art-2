@@ -65,7 +65,7 @@
         position="-0.18 0.15 0.020"
         opacity="0"
         scale="0.97 0.97 0.97"
-        material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
+        material="transparent: true; opacity: 1; depthTest: false; depthWrite: false; alphaTest: 0.01"
         animation__show="property: opacity; from: 0; to: 0.60; dur: 900; easing: easeOutCubic; startEvents: ar-show"
         animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
         animation__pulse="property: scale; dir: alternate; dur: 2600; easing: easeInOutSine; loop: true; from: 0.97 0.97 0.97; to: 1.02 1.02 1.02"
@@ -80,7 +80,7 @@
     position="0.4 -0.1 0.045"
     opacity="0"
     scale="0.96 0.96 0.96"
-    material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
+    material="transparent: true; opacity: 1; depthTest: false; depthWrite: false; alphaTest: 0.01"
     animation__show="property: opacity; from: 0; to: 0.85; dur: 900; easing: easeOutCubic; startEvents: ar-show"
     animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
     animation__pulse="property: scale; dir: alternate; dur: 2100; easing: easeInOutSine; loop: true; from: 0.96 0.96 0.96; to: 1.04 1.04 1.04"
@@ -97,7 +97,7 @@
   position="-0.15 -0.4 0.070"
   opacity="0"
   scale="0.95 0.95 0.95"
-  material="transparent: true; opacity: 1; depthTest: false; depthWrite: false"
+ material="transparent: true; opacity: 1; depthTest: false; depthWrite: false; alphaTest: 0.01"
   animation__show="property: opacity; from: 0; to: 1; dur: 900; easing: easeOutCubic; startEvents: ar-show"
   animation__hide="property: opacity; to: 0; dur: 800; easing: easeOutCubic; startEvents: ar-hide"
   animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 0.95 0.95 0.95; to: 1.05 1.05 1.05"
@@ -128,8 +128,7 @@
   if (l2?.object3D) l2.object3D.renderOrder = 2;
   if (l1?.object3D) l1.object3D.renderOrder = 3;
 }
-sceneEl.addEventListener('loaded', setRenderOrder, { once: true });
-
+sceneEl.addEventListener('loaded', () => setTimeout(setRenderOrder, 0), { once: true });
 
     function emitAll(name){ layers.forEach(el => el && el.emit(name)); }
 
@@ -153,6 +152,7 @@ sceneEl.addEventListener('loaded', setRenderOrder, { once: true });
       if (isShown) return;
       isShown = true;
       emitAll('ar-show');
+      setTimeout(setRenderOrder, 0);
       status.textContent = "FOUND";
     });
 
@@ -197,6 +197,7 @@ sceneEl.addEventListener('loaded', setRenderOrder, { once: true });
   </script>
 </body>
 </html>
+
 
 
 
