@@ -42,150 +42,59 @@
     device-orientation-permission-ui="enabled:false"
     embedded>
 
-    <a-assets>
-      <a-asset-item id="jpFont" src="./fonts/jp.typeface.json"></a-asset-item>
-    </a-assets>
+   <!-- assets -->
+<a-assets>
+  <a-asset-item id="jpFont" src="./fonts/jp.typeface.json?v=3"></a-asset-item>
+</a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
+<a-entity id="target" mindar-image-target="targetIndex: 0">
 
-    <!-- ★ まずここで「AR関係なく」3D文字が作れるか単体テスト -->
-    <a-entity id="standaloneTest"
-      position="0 0 -1"
-      scale="1 1 1"
-      visible="true"
-      text-geometry="value: TEST; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
-      material="color:#00ff00; side:double; transparent:false; depthTest:false; depthWrite:false;">
-    </a-entity>
+  <!-- 奥 -->
+  <a-entity id="T2"
+    position="0 0 0.05"
+    scale="2.5 2.5 2.5"
+    visible="false"
+    text-geometry="value: うごくテキスト; font: #jpFont; size: 0.12; height: 0.02;"
+    material="color:#fff; transparent:true; opacity:0.55; side:double; depthTest:false; depthWrite:false;"
+    animation__pulse="property: scale; dir: alternate; dur: 2600; easing: easeInOutSine; loop: true; to: 2.65 2.65 2.65"
+    animation__breath="property: material.opacity; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; from: 0.35; to: 0.65">
+  </a-entity>
 
-    <!-- ターゲット追従アンカー -->
-    <a-entity id="target" mindar-image-target="targetIndex: 0">
+  <!-- 手前 -->
+  <a-entity id="T1"
+    position="0 0 0.08"
+    scale="2.5 2.5 2.5"
+    visible="false"
+    text-geometry="value: うごくテキスト; font: #jpFont; size: 0.12; height: 0.02;"
+    material="color:#fff; transparent:true; opacity:1; side:double; depthTest:false; depthWrite:false;"
+    animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 2.75 2.75 2.75"
+    animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.75; to: 1">
+  </a-entity>
 
-      <a-box id="dbg"
-        visible="false"
-        width="0.03" height="0.03" depth="0.03"
-        position="0 0 0.09"
-        material="color:#00ff00; depthTest:false; depthWrite:false">
-      </a-box>
+</a-entity>
 
-      <a-entity id="T2"
-        position="0 0 0.06"
-        scale="3 3 3"
-        visible="false"
-        text-geometry="value: 2; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
-        material="color:#fff; side:double; transparent:true; opacity:0.6; depthTest:false; depthWrite:false; alphaTest:0.01">
-      </a-entity>
+<script>
+  const targetEl = document.getElementById('target');
+  const t1 = document.getElementById('T1');
+  const t2 = document.getElementById('T2');
 
-      <a-entity id="T1"
-        position="0 0 0.08"
-        scale="3 3 3"
-        visible="false"
-        text-geometry="value: 1; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
-        material="color:#fff; side:double; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01">
-      </a-entity>
+  targetEl.addEventListener('targetFound', () => {
+    t1.setAttribute('visible', true);
+    t2.setAttribute('visible', true);
+    setTimeout(() => {
+      if (t2?.object3D) t2.object3D.renderOrder = 1;
+      if (t1?.object3D) t1.object3D.renderOrder = 2;
+    }, 0);
+  });
 
-    </a-entity>
-  </a-scene>
-
-  <script>
-    const overlay = document.getElementById('overlay');
-    const btn = document.getElementById('btn');
-    const status = document.getElementById('status');
-    const sceneEl = document.getElementById('scene');
-    const targetEl = document.getElementById('target');
-
-    // ★ 画面にエラーを出す（Safariのコンソール不要）
-    window.addEventListener('error', (e) => {
-      status.textContent = "ERROR:\n" + (e.message || e.error);
-    });
-    window.addEventListener('unhandledrejection', (e) => {
-      status.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason);
-    });
-
-    // コンポーネント存在チェック
-    function reportBasics() {
-      const ok = !!(window.AFRAME && AFRAME.components && AFRAME.components['text-geometry']);
-      status.textContent = [
-        "AFRAME: " + (!!window.AFRAME),
-        "text-geometry component: " + ok,
-        "font url: ./fonts/jp.typeface.json"
-      ].join("\n");
-      if (!ok) status.textContent += "\n→ text-geometry の読み込み失敗（unpkgが落ちてる/ブロック等）";
-    }
-
-    reportBasics();
-
-    const fontAsset = document.getElementById('jpFont');
-    fontAsset.addEventListener('loaded', () => {
-      status.textContent += "\nFONT OK";
-    });
-    fontAsset.addEventListener('error', () => {
-      status.textContent += "\nFONT ERROR（パス/JSON）";
-    });
-
-    function waitForSystem(timeoutMs = 6000) {
-      return new Promise((resolve, reject) => {
-        const t0 = Date.now();
-        const timer = setInterval(() => {
-          const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
-          if (sys && typeof sys.start === "function") { clearInterval(timer); resolve(sys); }
-          if (Date.now() - t0 > timeoutMs) { clearInterval(timer); reject(new Error("mindar-image-system が見つかりません")); }
-        }, 100);
-      });
-    }
-
-    const dbg = document.getElementById('dbg');
-    const t1 = document.getElementById('T1');
-    const t2 = document.getElementById('T2');
-
-    targetEl.addEventListener('targetFound', () => {
-      status.textContent += "\nFOUND";
-      dbg.setAttribute('visible', true);
-      t1.setAttribute('visible', true);
-      t2.setAttribute('visible', true);
-
-      // render order（前後を固定）
-      setTimeout(() => {
-        if (t2?.object3D) t2.object3D.renderOrder = 1;
-        if (t1?.object3D) t1.object3D.renderOrder = 2;
-      }, 0);
-    });
-
-    targetEl.addEventListener('targetLost', () => {
-      status.textContent += "\nLOST";
-      dbg.setAttribute('visible', false);
-      t1.setAttribute('visible', false);
-      t2.setAttribute('visible', false);
-    });
-
-    btn.addEventListener('click', async () => {
-      try {
-        btn.disabled = true;
-        status.textContent += "\n起動中…";
-
-        const res = await Promise.all([
-          fetch("./targets.mind", { cache: "no-store" }),
-          fetch("./fonts/jp.typeface.json", { cache: "no-store" }),
-        ]);
-        if (!res[0].ok) throw new Error("targets.mind が見つかりません（" + res[0].status + "）");
-        if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + res[1].status + "）");
-
-        if (!sceneEl.hasLoaded) {
-          await new Promise(r => sceneEl.addEventListener("loaded", r, { once: true }));
-        }
-
-        const arSystem = await waitForSystem();
-        await arSystem.start();
-
-        overlay.style.display = "none";
-      } catch (e) {
-        alert("AR開始に失敗しました。\n" + (e?.message ?? e));
-        status.textContent = "失敗:\n" + (e?.message ?? e);
-        btn.disabled = false;
-      }
-    });
-  </script>
+  targetEl.addEventListener('targetLost', () => {
+    t1.setAttribute('visible', false);
+    t2.setAttribute('visible', false);
+  });
+</script>
 </body>
 </html>
+
 
 
 
