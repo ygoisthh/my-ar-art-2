@@ -5,18 +5,27 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My AR Art 2</title>
 
-  <script src="https://aframe.io/releases/1.3.0/aframe.min.js?v=100"></script>
-  <script src="./libs/aframe-text-geometry-component.min.js?v=100"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js?v=100"></script>
+  <!-- 推奨：MindAR公式例に合わせる -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js?v=14"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js?v=14"></script>
+  <script src="./libs/aframe-text-geometry-component.min.js?v=14"></script>
 
   <style>
     html,body{margin:0;height:100%;background:#000;overflow:hidden;}
-    #overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:9999;color:#fff;font:14px/1.4 system-ui;text-align:center;padding:16px;}
+    #overlay{
+      position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      background:rgba(0,0,0,.55); z-index:9999;
+      color:#fff; font:14px/1.4 system-ui; text-align:center; padding:16px;
+    }
     #btn{padding:12px 18px;border-radius:999px;border:0;font-size:16px;}
-    #status{margin-top:10px;opacity:.9;white-space:pre-line;}
+    #status{margin-top:10px;opacity:.9; white-space:pre-line;}
+
     video{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;z-index:0!important;}
     a-scene{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:2!important;}
     canvas{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:3!important;}
+
+    /* ✅ MindARの標準UIは“設定で切らず”CSSで消す */
+    .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning { display:none !important; }
   </style>
 </head>
 
@@ -30,39 +39,43 @@
 
   <a-scene
     id="scene"
-    mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiLoading: false; uiScanning: false;"
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
     vr-mode-ui="enabled:false"
     device-orientation-permission-ui="enabled:false"
     embedded>
 
     <a-assets>
-      <a-asset-item id="jpFont" src="./fonts/jp.typeface.json?v=100"></a-asset-item>
+      <a-asset-item id="jpFont" src="./fonts/jp.typeface.json?v=14"></a-asset-item>
     </a-assets>
 
+    <!-- ライト無しでも見えるように flat -->
     <a-entity light="type: ambient; intensity: 1"></a-entity>
+
     <a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
 
     <a-entity id="target" mindar-image-target="targetIndex: 0">
+
+      <!-- デバッグ用：ターゲットに追従してるか確認 -->
       <a-box id="dbg" visible="false"
         width="0.03" height="0.03" depth="0.03"
         position="0 0 0.08"
         material="shader: flat; color:#00ff00; depthTest:false; depthWrite:false"></a-box>
 
-      <!-- 奥 -->
+      <!-- 奥（薄い） -->
       <a-entity id="T2" visible="false" position="0 0 0.05"
         text-geometry="value: うごくテキスト; font: #jpFont; size: 0.12; height: 0.02; curveSegments: 2;"
         material="shader: flat; color:#fff; transparent:true; opacity:0.55; side:double; depthTest:false; depthWrite:false; alphaTest:0.01;"
         animation__pulse="property: scale; dir: alternate; dur: 2600; easing: easeInOutSine; loop: true; from: 1 1 1; to: 1.07 1.07 1.07"
         animation__breath="property: material.opacity; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; from: 0.35; to: 0.65"></a-entity>
 
-      <!-- 手前 -->
+      <!-- 手前（濃い） -->
       <a-entity id="T1" visible="false" position="0 0 0.08"
         text-geometry="value: うごくテキスト; font: #jpFont; size: 0.12; height: 0.02; curveSegments: 2;"
         material="shader: flat; color:#fff; transparent:true; opacity:1; side:double; depthTest:false; depthWrite:false; alphaTest:0.01;"
         animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 1 1 1; to: 1.10 1.10 1.10"
         animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.75; to: 1"></a-entity>
-    </a-entity>
 
+    </a-entity>
   </a-scene>
 
   <script>
@@ -76,14 +89,18 @@
     const dbg = document.getElementById('dbg');
     const fontAsset = document.getElementById('jpFont');
 
-    const log = (s) => status.textContent += "\n" + s;
+    const log = (s)=> status.textContent += "\n" + s;
 
-    window.addEventListener('error', (e)=>{ status.textContent = "ERROR:\n" + (e.message || e.error); });
-    window.addEventListener('unhandledrejection', (e)=>{ status.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason); });
+    window.addEventListener('error', (e) => {
+      status.textContent = "ERROR:\n" + (e.message || e.error);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      status.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason);
+    });
 
     let fontReady = false;
-    fontAsset.addEventListener('loaded', ()=>{ fontReady = true; log("FONT OK"); });
-    fontAsset.addEventListener('error',  ()=>{ log("FONT ERROR"); });
+    fontAsset.addEventListener('loaded', () => { fontReady = true; log("FONT OK"); });
+    fontAsset.addEventListener('error',  () => { log("FONT ERROR（パス/JSON）"); });
 
     function waitForSystem(timeoutMs=8000){
       return new Promise((resolve, reject) => {
@@ -96,25 +113,40 @@
       });
     }
 
+    // チラつき対策
+    let isShown = false;
+    let lostTimer = null;
+
     targetEl.addEventListener('targetFound', () => {
+      if (lostTimer) { clearTimeout(lostTimer); lostTimer = null; }
+      if (isShown) return;
+      isShown = true;
+
       log("FOUND");
       dbg.setAttribute('visible', true);
-      if (!fontReady) { log("フォント待ち…"); return; }
+
+      if (!fontReady) { log("（フォント待ち）"); return; }
 
       t1.setAttribute('visible', true);
       t2.setAttribute('visible', true);
 
+      // 前後固定
       setTimeout(() => {
-        if (t2.object3D) t2.object3D.renderOrder = 1;
-        if (t1.object3D) t1.object3D.renderOrder = 2;
+        if (t2?.object3D) t2.object3D.renderOrder = 1;
+        if (t1?.object3D) t1.object3D.renderOrder = 2;
       }, 0);
     });
 
     targetEl.addEventListener('targetLost', () => {
-      log("LOST");
-      dbg.setAttribute('visible', false);
-      t1.setAttribute('visible', false);
-      t2.setAttribute('visible', false);
+      if (!isShown) return;
+      lostTimer = setTimeout(() => {
+        log("LOST");
+        dbg.setAttribute('visible', false);
+        t1.setAttribute('visible', false);
+        t2.setAttribute('visible', false);
+        isShown = false;
+        lostTimer = null;
+      }, 200);
     });
 
     btn.addEventListener('click', async () => {
@@ -122,7 +154,7 @@
         btn.disabled = true;
         status.textContent = "起動中…";
 
-        // 404チェック（任意だけど、原因切り分けに超効く）
+        // 404を先につぶす
         const res = await Promise.all([
           fetch("./targets.mind", { cache:"no-store" }),
           fetch("./fonts/jp.typeface.json", { cache:"no-store" }),
@@ -130,10 +162,15 @@
         if (!res[0].ok) throw new Error("targets.mind が見つかりません");
         if (!res[1].ok) throw new Error("フォントJSONが見つかりません");
 
+        // A-Frameがまだなら待つ
+        if (!sceneEl.hasLoaded) {
+          await new Promise(r => sceneEl.addEventListener("loaded", r, { once:true }));
+        }
+
         const arSystem = await waitForSystem();
-        await arSystem.start();   // ✅ ユーザー操作の中でカメラ起動
-        overlay.style.display = "none";
-        log("起動OK（ターゲットを映してね）");
+        await arSystem.start();          // ✅ ここでカメラ起動
+
+        overlay.style.display = "none";  // ✅ 起動後にUIを消す
       }catch(e){
         status.textContent = "失敗:\n" + (e?.message ?? e);
         btn.disabled = false;
@@ -142,3 +179,4 @@
   </script>
 </body>
 </html>
+
