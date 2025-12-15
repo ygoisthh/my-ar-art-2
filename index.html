@@ -87,6 +87,13 @@
   </a-scene>
 
   <script>
+    const fontAsset = document.getElementById('jpFont');
+let fontReady = false;
+fontAsset.addEventListener('loaded', () => {
+  fontReady = true;
+  console.log('FONT LOADED');
+});
+
     const overlay = document.getElementById('overlay');
     const btn = document.getElementById('btn');
     const status = document.getElementById('status');
@@ -110,6 +117,7 @@ function hideAll(){
 }
 
 targetEl.addEventListener('targetFound', () => {
+  if (!fontReady) { status.textContent = "フォント読込中…"; return; }
   showAll();
   setTimeout(setRenderOrder, 0);
 });
@@ -177,6 +185,7 @@ if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + 
   </script>
 </body>
 </html>
+
 
 
 
