@@ -111,19 +111,33 @@ function hideAll(){
 
 targetEl.addEventListener('targetFound', () => {
   showAll();
+  setTimeout(setRenderOrder, 0);
 });
 
 targetEl.addEventListener('targetLost', () => {
   hideAll();
 });
 
-sceneEl.addEventListener('loaded', () => setTimeout(setRenderOrder, 0), { once: true });
-    function setRenderOrder(){
+function setRenderOrder(){
   const t2 = document.getElementById('T2');
   const t1 = document.getElementById('T1');
-  if (t2?.object3D) t2.object3D.renderOrder = 1; // 奥
-  if (t1?.object3D) t1.object3D.renderOrder = 2; // 手前
+  if (t2?.object3D) t2.object3D.renderOrder = 1;
+  if (t1?.object3D) t1.object3D.renderOrder = 2;
 }
+
+sceneEl.addEventListener('loaded', () => setTimeout(setRenderOrder, 0), { once: true });
+
+function waitForSystem(timeoutMs = 6000) {
+  return new Promise((resolve, reject) => {
+    const t0 = Date.now();
+    const timer = setInterval(() => {
+      const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
+      if (sys && typeof sys.start === "function") { clearInterval(timer); resolve(sys); }
+      if (Date.now() - t0 > timeoutMs) { clearInterval(timer); reject(new Error("mindar-image-system が見つかりません")); }
+    }, 100);
+  });
+}
+
 
     function waitForSystem(timeoutMs = 6000) {
       return new Promise((resolve, reject) => {
@@ -133,10 +147,7 @@ sceneEl.addEventListener('loaded', () => setTimeout(setRenderOrder, 0), { once: 
           if (sys && typeof sys.start === "function") { clearInterval(timer); resolve(sys); }
           if (Date.now() - t0 > timeoutMs) { clearInterval(timer); reject(new Error("mindar-image-system が見つかりません")); }
         }, 100);
-      });
     }
-
-  
     });
 
     btn.addEventListener('click', async () => {
@@ -168,6 +179,7 @@ if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + 
   </script>
 </body>
 </html>
+
 
 
 
