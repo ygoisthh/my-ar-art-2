@@ -140,38 +140,35 @@
     });
 
     btn.addEventListener('click', async () => {
-      try {
-        btn.disabled = true;
+  try {
+    btn.disabled = true;
 
-        log("起動中…(1) fetch");
-        const res = await Promise.all([
-          fetch("./targets.mind", { cache: "no-store" }),
-          fetch("./fonts/jp.typeface.json", { cache: "no-store" }),
-        ]);
-        if (!res[0].ok) throw new Error("targets.mind が見つかりません（" + res[0].status + "）");
-        if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + res[1].status + "）");
+    status.textContent += "\n起動中…(1) fetch";
+    const res = await Promise.all([
+      fetch("./targets.mind", { cache: "no-store" }),
+      fetch("./fonts/jp.typeface.json", { cache: "no-store" }),
+    ]);
+    if (!res[0].ok) throw new Error("targets.mind が見つかりません");
+    if (!res[1].ok) throw new Error("フォントJSONが見つかりません");
 
-        log("起動中…(2) scene loaded待ち");
-        if (!sceneEl.hasLoaded) {
-          await new Promise(r => sceneEl.addEventListener("loaded", r, { once: true }));
-        }
-        log("scene loaded OK");
+    // ❌ scene loaded 待ちは削除！！！
 
-        log("起動中…(3) system待ち");
-        const arSystem = await waitForSystem();
-        log("system OK");
+    status.textContent += "\n起動中…(2) system待ち";
+    const arSystem = await waitForSystem();
 
-        log("起動中…(4) start()");
-        await arSystem.start();
-        log("start() OK");
+    status.textContent += "\n起動中…(3) start()";
+    await arSystem.start();
 
-        overlay.style.display = "none";
-      } catch (e) {
-        alert("AR開始に失敗しました。\n" + (e?.message ?? e));
-        status.textContent = "失敗:\n" + (e?.message ?? e);
-        btn.disabled = false;
-      }
-    });
+    status.textContent += "\n起動OK";
+    overlay.style.display = "none";
+
+  } catch (e) {
+    alert("AR開始に失敗しました。\n" + e.message);
+    status.textContent = "失敗:\n" + e.message;
+    btn.disabled = false;
+  }
+});
+
   </script>
 </body>
 </html>
