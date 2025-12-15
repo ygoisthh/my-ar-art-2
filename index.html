@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My AR Art 2</title>
 
-  <!-- 読み込み順：A-Frame → MindAR → text-geometry（※この順が安定しやすい） -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js?v=100"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js?v=100"></script>
-  <script src="./libs/aframe-text-geometry-component.min.js?v=100"></script>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js?v=1414"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js?v=1414"></script>
+  <script src="./libs/aframe-text-geometry-component.min.js?v=1414"></script>
 
   <style>
     html,body{margin:0;height:100%;background:#000;overflow:hidden;}
@@ -39,32 +38,36 @@
     device-orientation-permission-ui="enabled:false"
     embedded>
 
-    <!-- 日本語フォント（あとで使う：今は動作確認用に外部フォントを使う） -->
+    <!-- a-assets は残してもOK（ただし text-geometry では参照しない） -->
     <a-assets>
-      <a-asset-item id="jpFont" src="./fonts/jp.typeface.json?v=100"></a-asset-item>
+      <a-asset-item id="jpFont" src="./fonts/jp.typeface.json?v=1414"></a-asset-item>
     </a-assets>
 
     <a-entity light="type: ambient; intensity: 1"></a-entity>
     <a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
 
+    <!-- ✅ AR関係なく見えるべきテスト文字（ここが出ないなら text-geometry 生成失敗） -->
+    <a-entity id="standalone"
+      position="0 0 -1"
+      text-geometry="value: TEST123; font: ./fonts/jp.typeface.json?v=1414; size: 0.15; height: 0.02;"
+      material="shader: flat; color:#00ff00; side:double;">
+    </a-entity>
+
     <a-entity id="target" mindar-image-target="targetIndex: 0">
 
-      <!-- デバッグ：ターゲットに追従してるか -->
       <a-box id="dbg" visible="false"
         width="0.03" height="0.03" depth="0.03"
         position="0 0 0.08"
         material="shader: flat; color:#00ff00; depthTest:false; depthWrite:false"></a-box>
 
-      <!-- ★まずは確実に出る英字フォントで検証 -->
-      <!-- 日本語に戻す時は font: #jpFont に変える -->
       <a-entity id="T2" visible="false" position="0 0 0.05"
-        text-geometry="value: TEST 2; font: https://threejs.org/examples/fonts/helvetiker_regular.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
+        text-geometry="value: うごくテキスト; font: ./fonts/jp.typeface.json?v=1414; size: 0.12; height: 0.02; curveSegments: 2;"
         material="shader: flat; color:#fff; transparent:true; opacity:0.55; side:double; depthTest:false; depthWrite:false; alphaTest:0.01;"
         animation__pulse="property: scale; dir: alternate; dur: 2600; easing: easeInOutSine; loop: true; from: 1 1 1; to: 1.07 1.07 1.07"
         animation__breath="property: material.opacity; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; from: 0.35; to: 0.65"></a-entity>
 
       <a-entity id="T1" visible="false" position="0 0 0.08"
-        text-geometry="value: TEST 1; font: https://threejs.org/examples/fonts/helvetiker_regular.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
+        text-geometry="value: うごくテキスト; font: ./fonts/jp.typeface.json?v=1414; size: 0.12; height: 0.02; curveSegments: 2;"
         material="shader: flat; color:#fff; transparent:true; opacity:1; side:double; depthTest:false; depthWrite:false; alphaTest:0.01;"
         animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 1 1 1; to: 1.10 1.10 1.10"
         animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.75; to: 1"></a-entity>
@@ -81,6 +84,7 @@
     const t1 = document.getElementById('T1');
     const t2 = document.getElementById('T2');
     const dbg = document.getElementById('dbg');
+    const standalone = document.getElementById('standalone');
 
     const log = (s)=> status.textContent += "\n" + s;
 
@@ -102,18 +106,28 @@
       });
     }
 
-    let isShown = false;
-    let lostTimer = null;
+    // ✅ 文字メッシュが生成されたかをログ（生成されない＝フォント/テキスト問題）
+    function reportMesh(id, el){
+      setTimeout(() => {
+        const mesh = el.getObject3D('mesh');
+        log(`${id} mesh: ${!!mesh}`);
+        if (mesh && mesh.geometry) log(`${id} geom ok`);
+      }, 800);
+    }
+
+    sceneEl.addEventListener('loaded', () => {
+      log("SCENE LOADED");
+      reportMesh("standalone", standalone);
+    }, { once:true });
 
     targetEl.addEventListener('targetFound', () => {
-      if (lostTimer) { clearTimeout(lostTimer); lostTimer = null; }
-      if (isShown) return;
-      isShown = true;
-
       log("FOUND");
       dbg.setAttribute('visible', true);
       t1.setAttribute('visible', true);
       t2.setAttribute('visible', true);
+
+      reportMesh("T1", t1);
+      reportMesh("T2", t2);
 
       setTimeout(() => {
         if (t2?.object3D) t2.object3D.renderOrder = 1;
@@ -122,15 +136,10 @@
     });
 
     targetEl.addEventListener('targetLost', () => {
-      if (!isShown) return;
-      lostTimer = setTimeout(() => {
-        log("LOST");
-        dbg.setAttribute('visible', false);
-        t1.setAttribute('visible', false);
-        t2.setAttribute('visible', false);
-        isShown = false;
-        lostTimer = null;
-      }, 200);
+      log("LOST");
+      dbg.setAttribute('visible', false);
+      t1.setAttribute('visible', false);
+      t2.setAttribute('visible', false);
     });
 
     btn.addEventListener('click', async () => {
@@ -147,7 +156,6 @@
 
         const arSystem = await waitForSystem();
         await arSystem.start();
-
         overlay.style.display = "none";
       }catch(e){
         status.textContent = "失敗:\n" + (e?.message ?? e);
