@@ -34,11 +34,12 @@
   </div>
 
   <a-scene
-    id="scene"
-    mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
-    vr-mode-ui="enabled:false"
-    device-orientation-permission-ui="enabled:false"
-    embedded>
+  id="scene"
+  mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiLoading: no; uiScanning: no;"
+  vr-mode-ui="enabled:false"
+  device-orientation-permission-ui="enabled:false"
+  embedded>
+
 
     <a-assets>
       <a-asset-item id="jpFont" src="./fonts/jp.typeface.json?v=10"></a-asset-item>
@@ -172,3 +173,4 @@
   </script>
 </body>
 </html>
+
