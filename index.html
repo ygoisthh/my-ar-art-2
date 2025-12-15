@@ -66,7 +66,7 @@
   scale="0.95 0.95 0.95"
   visible="false"
   text-geometry="value: うごくテキスト; font: #jpFont; size: 0.12; height: 0.02; curveSegments: 4;"
-  material="color: #ffffff; transparent: true; opacity: 0.55; depthTest: false; depthWrite: false;"
+  material="color:#fff; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01"
   animation__pulse="property: scale; dir: alternate; dur: 2600; easing: easeInOutSine; loop: true; to: 1.02 1.02 1.02"
   animation__breath="property: material.opacity; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; from: 0.35; to: 0.65">
 </a-entity>
@@ -77,7 +77,7 @@
   scale="0.95 0.95 0.95"
   visible="false"
   text-geometry="value: うごくテキスト; font: #jpFont; size: 0.12; height: 0.02; curveSegments: 4;"
-  material="color: #ffffff; transparent: true; opacity: 1; depthTest: false; depthWrite: false;"
+  material="color:#fff; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01"
   animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; to: 1.05 1.05 1.05"
   animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.75; to: 1">
 </a-entity>
@@ -138,18 +138,16 @@ function waitForSystem(timeoutMs = 6000) {
   });
 }
 
-
-    function waitForSystem(timeoutMs = 6000) {
-      return new Promise((resolve, reject) => {
-        const t0 = Date.now();
-        const timer = setInterval(() => {
-          const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
-          if (sys && typeof sys.start === "function") { clearInterval(timer); resolve(sys); }
-          if (Date.now() - t0 > timeoutMs) { clearInterval(timer); reject(new Error("mindar-image-system が見つかりません")); }
-        }, 100);
-    }
-    });
-
+function waitForSystem(timeoutMs = 6000) {
+  return new Promise((resolve, reject) => {
+    const t0 = Date.now();
+    const timer = setInterval(() => {
+      const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
+      if (sys && typeof sys.start === "function") { clearInterval(timer); resolve(sys); }
+      if (Date.now() - t0 > timeoutMs) { clearInterval(timer); reject(new Error("mindar-image-system が見つかりません")); }
+    }, 100);
+  });
+}
     btn.addEventListener('click', async () => {
       try {
         btn.disabled = true;
@@ -179,6 +177,7 @@ if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + 
   </script>
 </body>
 </html>
+
 
 
 
