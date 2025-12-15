@@ -69,7 +69,16 @@
       scale="3 3 3"
       visible="true"
       text-geometry="value: あ; font: #jpFont; size: 0.12; height: 0.02; curveSegments: 2;"
-      material="color:#ff0000; side:double; transparent:false; depthTest:false; depthWrite:false;">
+      material="color:#fff; side:double; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01"
+    </a-entity>
+    
+      <a-entity id="T2"
+      position="0 0 0.06"
+      rotation="0 0 0"
+      scale="3 3 3"
+      visible="true"
+      text-geometry="value: 2あ; font: #jpFont; size: 0.12; height: 0.02; curveSegments: 2;"
+      material="color:#fff; side:double; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01"
     </a-entity>
 
   </a-entity>
@@ -100,12 +109,33 @@
     });
   }
 
- targetEl.addEventListener('targetFound', () => {
-  alert("FOUND!");
+ const t1 = document.getElementById('T1');
+const t2 = document.getElementById('T2');
+
+targetEl.addEventListener('targetFound', () => {
+  status.textContent = "FOUND";
+
+  // 表示ON
+  t1.setAttribute('visible', true);
+  t2.setAttribute('visible', true);
+
+  // ★ text-geometry を再適用（フォント読み込み後の再生成）
+  const tg1 = t1.getAttribute('text-geometry');
+  const tg2 = t2.getAttribute('text-geometry');
+  t1.setAttribute('text-geometry', tg1);
+  t2.setAttribute('text-geometry', tg2);
+
+  // レイヤー順を固定（手前が後ろに隠れない）
+  setTimeout(() => {
+    if (t2?.object3D) t2.object3D.renderOrder = 1;
+    if (t1?.object3D) t1.object3D.renderOrder = 2;
+  }, 0);
 });
 
 targetEl.addEventListener('targetLost', () => {
   status.textContent = "LOST";
+  t1.setAttribute('visible', false);
+  t2.setAttribute('visible', false);
 });
 
 
@@ -139,6 +169,7 @@ targetEl.addEventListener('targetLost', () => {
 </script>
 </body>
 </html>
+
 
 
 
