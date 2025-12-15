@@ -81,19 +81,13 @@
         rotation="0 0 0"
         scale="3 3 3"
         visible="false"
-        text-geometry="value: あ; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
+        text-geometry="value: 123; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02;"
         material="color:#ffffff; side:double; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01"
         animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 2.90 2.90 2.90; to: 3.15 3.15 3.15"
         animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.75; to: 1">
       </a-entity>
 
-      <a-box id="dbg"
-  visible="false"
-  width="0.03" height="0.03" depth="0.03"
-  position="0 0 0.09"
-  material="color:#00ff00; depthTest:false; depthWrite:false">
-</a-box>
-
+    
     </a-entity>
   </a-scene>
 
@@ -203,4 +197,5 @@ window.addEventListener('unhandledrejection', (e) => {
   </script>
 </body>
 </html>
+
 
