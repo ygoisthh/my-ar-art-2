@@ -79,105 +79,127 @@
     </a-entity>
   </a-scene>
 
-  <script>
-    const btn = document.getElementById('btn');
-    const overlay = document.getElementById('overlay');
-    const status = document.getElementById('status');
-    const sceneEl = document.getElementById('scene');
-    const targetEl = document.getElementById('target');
-    const t1 = document.getElementById('T1');
-    const t2 = document.getElementById('T2');
-    const fontAsset = document.getElementById('jpFont');
+ <script>
+  const btn = document.getElementById('btn');
+  const overlay = document.getElementById('overlay');
+  const status = document.getElementById('status');
+  const sceneEl = document.getElementById('scene');
+  const targetEl = document.getElementById('target');
+  const t1 = document.getElementById('T1');
+  const t2 = document.getElementById('T2');
+  const fontAsset = document.getElementById('jpFont');
 
-    // 画面にJSエラーを出す（iPhoneでも原因が見える）
-    window.addEventListener('error', (e) => {
-      status.textContent = "ERROR:\n" + (e.message || e.error);
-    });
-    window.addEventListener('unhandledrejection', (e) => {
-      status.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason);
-    });
+  // 画面にJSエラーを出す（iPhoneでも原因が見える）
+  window.addEventListener('error', (e) => {
+    status.textContent = "ERROR:\n" + (e.message || e.error);
+  });
+  window.addEventListener('unhandledrejection', (e) => {
+    status.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason);
+  });
 
-    // 必須コンポーネント確認
-    const okTextGeom = !!(window.AFRAME && AFRAME.components && AFRAME.components['text-geometry']);
-    status.textContent = "AFRAME: " + (!!window.AFRAME) +
-                         "\ntext-geometry: " + okTextGeom +
-                         "\nfont: ./fonts/jp.typeface.json";
+  // 必須コンポーネント確認
+  const okTextGeom = !!(window.AFRAME && AFRAME.components && AFRAME.components['text-geometry']);
+  status.textContent =
+    "AFRAME: " + (!!window.AFRAME) +
+    "\ntext-geometry: " + okTextGeom +
+    "\nfont: ./fonts/jp.typeface.json";
 
-    // フォントロード確認
-    let fontReady = false;
-    fontAsset.addEventListener('loaded', () => {
-      fontReady = true;
-      status.textContent += "\nFONT OK";
-    });
-    fontAsset.addEventListener('error', () => {
-      status.textContent += "\nFONT ERROR（パス/JSON）";
-    });
+  // MindAR 側のイベント（ここが出ると原因が分かる）
+  sceneEl.addEventListener('arReady', () => {
+    status.textContent += "\n(arReady)";
+  });
+  sceneEl.addEventListener('arError', (e) => {
+    status.textContent += "\n(arError) " + (e?.detail?.message || e?.detail || '');
+  });
 
-    function waitForSystem(timeoutMs = 6000) {
-      return new Promise((resolve, reject) => {
-        const t0 = Date.now();
-        const timer = setInterval(() => {
-          const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
-          if (sys && typeof sys.start === "function") {
-            clearInterval(timer);
-            resolve(sys);
-          }
-          if (Date.now() - t0 > timeoutMs) {
-            clearInterval(timer);
-            reject(new Error("mindar-image-system が見つかりません"));
-          }
-        }, 100);
-      });
-    }
+  // フォントロード確認
+  let fontReady = false;
+  fontAsset.addEventListener('loaded', () => {
+    fontReady = true;
+    status.textContent += "\nFONT OK";
+  });
+  fontAsset.addEventListener('error', () => {
+    status.textContent += "\nFONT ERROR（パス/JSON）";
+  });
 
-    // ターゲット検出 → 表示ON
-    targetEl.addEventListener('targetFound', () => {
-      if (!fontReady) { status.textContent += "\nFOUND（フォント読込待ち）"; return; }
-      status.textContent += "\nFOUND";
-      t1.setAttribute('visible', true);
-      t2.setAttribute('visible', true);
-
-      // 前後関係を固定（隠れたり連動するのを防ぐ）
-      setTimeout(() => {
-        if (t2?.object3D) t2.object3D.renderOrder = 1;
-        if (t1?.object3D) t1.object3D.renderOrder = 2;
-      }, 0);
-    });
-
-    // 見失い → 非表示
-    targetEl.addEventListener('targetLost', () => {
-      status.textContent += "\nLOST";
-      t1.setAttribute('visible', false);
-      t2.setAttribute('visible', false);
-    });
-
-    // ボタンでAR起動
-    btn.addEventListener('click', async () => {
-      try {
-        btn.disabled = true;
-        status.textContent += "\n起動中…";
-
-        // 404を先に潰す
-        const res = await Promise.all([
-          fetch("./targets.mind", { cache: "no-store" }),
-          fetch("./fonts/jp.typeface.json", { cache: "no-store" }),
-        ]);
-        if (!res[0].ok) throw new Error("targets.mind が見つかりません（" + res[0].status + "）");
-        if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + res[1].status + "）");
-
-        if (!sceneEl.hasLoaded) {
-          await new Promise(r => sceneEl.addEventListener("loaded", r, { once: true }));
+  function waitForSystem(timeoutMs = 8000) {
+    return new Promise((resolve, reject) => {
+      const t0 = Date.now();
+      const timer = setInterval(() => {
+        const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
+        if (sys && typeof sys.start === "function") {
+          clearInterval(timer);
+          resolve(sys);
         }
-
-        const arSystem = await waitForSystem();
-        await arSystem.start();          // ✅ ここでカメラ起動
-        overlay.style.display = "none";  // ✅ UIを消す
-      } catch (e) {
-        alert("AR開始に失敗しました。\n" + (e?.message ?? e));
-        status.textContent = "失敗:\n" + (e?.message ?? e);
-        btn.disabled = false;
-      }
+        if (Date.now() - t0 > timeoutMs) {
+          clearInterval(timer);
+          reject(new Error("mindar-image-system が見つかりません（初期化されてない/読み込み順/互換性）"));
+        }
+      }, 100);
     });
-  </script>
+  }
+
+  function withTimeout(promise, ms, label="timeout") {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(label + "（" + ms + "ms）")), ms))
+    ]);
+  }
+
+  // ターゲット検出 → 表示ON
+  targetEl.addEventListener('targetFound', () => {
+    if (!fontReady) { status.textContent += "\nFOUND（フォント読込待ち）"; return; }
+    status.textContent += "\nFOUND";
+    t1.setAttribute('visible', true);
+    t2.setAttribute('visible', true);
+
+    setTimeout(() => {
+      if (t2?.object3D) t2.object3D.renderOrder = 1;
+      if (t1?.object3D) t1.object3D.renderOrder = 2;
+    }, 0);
+  });
+
+  targetEl.addEventListener('targetLost', () => {
+    status.textContent += "\nLOST";
+    t1.setAttribute('visible', false);
+    t2.setAttribute('visible', false);
+  });
+
+  btn.addEventListener('click', async () => {
+    try {
+      btn.disabled = true;
+      status.textContent += "\n起動中…(1) fetch";
+
+      // 404を先に潰す
+      const res = await Promise.all([
+        fetch("./targets.mind", { cache: "no-store" }),
+        fetch("./fonts/jp.typeface.json", { cache: "no-store" }),
+      ]);
+      if (!res[0].ok) throw new Error("targets.mind が見つかりません（" + res[0].status + "）");
+      if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + res[1].status + "）");
+
+      status.textContent += "\n起動中…(2) scene loaded待ち";
+      if (!sceneEl.hasLoaded) {
+        await withTimeout(new Promise(r => sceneEl.addEventListener("loaded", r, { once: true })), 8000, "scene loaded待ちで停止");
+      }
+
+      status.textContent += "\n起動中…(3) system待ち";
+      const arSystem = await waitForSystem(8000);
+
+      status.textContent += "\n起動中…(4) arSystem.start()";
+      // startが固まるケースがあるのでタイムアウトも付ける
+      await withTimeout(arSystem.start(), 12000, "arSystem.start が返ってこない");
+
+      status.textContent += "\n起動OK";
+      overlay.style.display = "none";
+    } catch (e) {
+      alert("AR開始に失敗しました。\n" + (e?.message ?? e));
+      status.textContent = "失敗:\n" + (e?.message ?? e);
+      btn.disabled = false;
+    }
+  });
+</script>
+
 </body>
 </html>
+
