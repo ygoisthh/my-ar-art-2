@@ -7,7 +7,7 @@
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  <script src="https://unpkg.com/aframe-text-geometry-component@^0.5.1/dist/aframe-text-geometry-component.min.js"></script>
+  <script src="https://unpkg.com/aframe-text-geometry-component@0.5.1/dist/aframe-text-geometry-component.min.js"></script>
 
   <style>
     html,body{margin:0;height:100%;background:#000;overflow:hidden;}
@@ -17,24 +17,11 @@
       color:#fff; font:14px/1.4 system-ui; text-align:center; padding:16px;
     }
     #btn{padding:12px 18px;border-radius:999px;border:0;font-size:16px;}
-    #status{margin-top:10px;opacity:.9}
+    #status{margin-top:10px;opacity:.9; white-space:pre-line;}
 
-    /* iPhone Safariでカメラ映像とARキャンバスの重なりを安定させる */
-    video{
-      position:fixed !important; inset:0 !important;
-      width:100% !important; height:100% !important;
-      object-fit:cover !important; z-index:0 !important;
-    }
-    a-scene{
-      position:fixed !important; inset:0 !important;
-      width:100% !important; height:100% !important;
-      z-index:2 !important;
-    }
-    canvas{
-      position:fixed !important; inset:0 !important;
-      width:100% !important; height:100% !important;
-      z-index:3 !important;
-    }
+    video{position:fixed !important; inset:0 !important; width:100% !important; height:100% !important; object-fit:cover !important; z-index:0 !important;}
+    a-scene{position:fixed !important; inset:0 !important; width:100% !important; height:100% !important; z-index:2 !important;}
+    canvas{position:fixed !important; inset:0 !important; width:100% !important; height:100% !important; z-index:3 !important;}
     #overlay{z-index:9999 !important;}
   </style>
 </head>
@@ -43,7 +30,7 @@
   <div id="overlay">
     <div>
       <button id="btn">ARを開始</button>
-      <div id="status">押したらカメラ許可 → 作品（ターゲット画像）を映してください</div>
+      <div id="status">準備中…</div>
     </div>
   </div>
 
@@ -60,64 +47,78 @@
 
     <a-camera position="0 0 0" look-controls="enabled:false"></a-camera>
 
-    <!-- ターゲットアンカー（検出されるまで全体が非表示になる） -->
+    <!-- ★ まずここで「AR関係なく」3D文字が作れるか単体テスト -->
+    <a-entity id="standaloneTest"
+      position="0 0 -1"
+      scale="1 1 1"
+      visible="true"
+      text-geometry="value: TEST; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
+      material="color:#00ff00; side:double; transparent:false; depthTest:false; depthWrite:false;">
+    </a-entity>
+
+    <!-- ターゲット追従アンカー -->
     <a-entity id="target" mindar-image-target="targetIndex: 0">
 
-      <!-- 奥レイヤー -->
+      <a-box id="dbg"
+        visible="false"
+        width="0.03" height="0.03" depth="0.03"
+        position="0 0 0.09"
+        material="color:#00ff00; depthTest:false; depthWrite:false">
+      </a-box>
+
       <a-entity id="T2"
         position="0 0 0.06"
-        rotation="0 0 0"
         scale="3 3 3"
         visible="false"
-        text-geometry="value: あ; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
-        material="color:#ffffff; side:double; transparent:true; opacity:0.55; depthTest:false; depthWrite:false; alphaTest:0.01"
-        animation__pulse="property: scale; dir: alternate; dur: 2400; easing: easeInOutSine; loop: true; from: 2.95 2.95 2.95; to: 3.10 3.10 3.10"
-        animation__breath="property: material.opacity; dir: alternate; dur: 2200; easing: easeInOutSine; loop: true; from: 0.35; to: 0.65">
+        text-geometry="value: 2; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
+        material="color:#fff; side:double; transparent:true; opacity:0.6; depthTest:false; depthWrite:false; alphaTest:0.01">
       </a-entity>
 
-      <!-- 手前レイヤー -->
       <a-entity id="T1"
         position="0 0 0.08"
-        rotation="0 0 0"
         scale="3 3 3"
         visible="false"
-        text-geometry="value: 123; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02;"
-        material="color:#ffffff; side:double; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01"
-        animation__pulse="property: scale; dir: alternate; dur: 2000; easing: easeInOutSine; loop: true; from: 2.90 2.90 2.90; to: 3.15 3.15 3.15"
-        animation__breath="property: material.opacity; dir: alternate; dur: 1800; easing: easeInOutSine; loop: true; from: 0.75; to: 1">
+        text-geometry="value: 1; font: ./fonts/jp.typeface.json; size: 0.12; height: 0.02; curveSegments: 2;"
+        material="color:#fff; side:double; transparent:true; opacity:1; depthTest:false; depthWrite:false; alphaTest:0.01">
       </a-entity>
 
-    
     </a-entity>
   </a-scene>
 
   <script>
-    window.addEventListener('error', (e) => {
-  status.textContent = "ERROR: " + (e.message || e.error);
-});
-window.addEventListener('unhandledrejection', (e) => {
-  status.textContent = "PROMISE ERROR: " + (e.reason?.message || e.reason);
-});
-
     const overlay = document.getElementById('overlay');
     const btn = document.getElementById('btn');
     const status = document.getElementById('status');
     const sceneEl = document.getElementById('scene');
     const targetEl = document.getElementById('target');
 
-    const t1 = document.getElementById('T1');
-    const t2 = document.getElementById('T2');
+    // ★ 画面にエラーを出す（Safariのコンソール不要）
+    window.addEventListener('error', (e) => {
+      status.textContent = "ERROR:\n" + (e.message || e.error);
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      status.textContent = "PROMISE ERROR:\n" + (e.reason?.message || e.reason);
+    });
 
-    // フォントロード確認
+    // コンポーネント存在チェック
+    function reportBasics() {
+      const ok = !!(window.AFRAME && AFRAME.components && AFRAME.components['text-geometry']);
+      status.textContent = [
+        "AFRAME: " + (!!window.AFRAME),
+        "text-geometry component: " + ok,
+        "font url: ./fonts/jp.typeface.json"
+      ].join("\n");
+      if (!ok) status.textContent += "\n→ text-geometry の読み込み失敗（unpkgが落ちてる/ブロック等）";
+    }
+
+    reportBasics();
+
     const fontAsset = document.getElementById('jpFont');
-    let fontReady = false;
-
     fontAsset.addEventListener('loaded', () => {
-      fontReady = true;
-      status.textContent = "FONT OK";
+      status.textContent += "\nFONT OK";
     });
     fontAsset.addEventListener('error', () => {
-      status.textContent = "FONT ERROR（パス/JSON形式を確認）";
+      status.textContent += "\nFONT ERROR（パス/JSON）";
     });
 
     function waitForSystem(timeoutMs = 6000) {
@@ -131,47 +132,35 @@ window.addEventListener('unhandledrejection', (e) => {
       });
     }
 
-    function refreshTextGeometry() {
-      // ★ フォントロード順などでメッシュ生成されないのを防ぐ
-      const g1 = t1.getAttribute('text-geometry');
-      const g2 = t2.getAttribute('text-geometry');
-      t1.setAttribute('text-geometry', g1);
-      t2.setAttribute('text-geometry', g2);
-    }
-
-    function setRenderOrder() {
-      if (t2?.object3D) t2.object3D.renderOrder = 1; // 奥
-      if (t1?.object3D) t1.object3D.renderOrder = 2; // 手前
-    }
+    const dbg = document.getElementById('dbg');
+    const t1 = document.getElementById('T1');
+    const t2 = document.getElementById('T2');
 
     targetEl.addEventListener('targetFound', () => {
-      if (!fontReady) { status.textContent = "フォント読込中…"; return; }
-
-      status.textContent = "FOUND";
+      status.textContent += "\nFOUND";
+      dbg.setAttribute('visible', true);
       t1.setAttribute('visible', true);
       t2.setAttribute('visible', true);
 
-      // 検出したタイミングで再生成＆順序固定
-      refreshTextGeometry();
-      setTimeout(setRenderOrder, 0);
-      
-      document.getElementById('dbg').setAttribute('visible', true);
-
+      // render order（前後を固定）
+      setTimeout(() => {
+        if (t2?.object3D) t2.object3D.renderOrder = 1;
+        if (t1?.object3D) t1.object3D.renderOrder = 2;
+      }, 0);
     });
 
     targetEl.addEventListener('targetLost', () => {
-      status.textContent = "LOST";
+      status.textContent += "\nLOST";
+      dbg.setAttribute('visible', false);
       t1.setAttribute('visible', false);
       t2.setAttribute('visible', false);
     });
 
-    // 起動ボタン
     btn.addEventListener('click', async () => {
       try {
         btn.disabled = true;
-        status.textContent = "起動中…";
+        status.textContent += "\n起動中…";
 
-        // ファイル存在チェック（404予防）
         const res = await Promise.all([
           fetch("./targets.mind", { cache: "no-store" }),
           fetch("./fonts/jp.typeface.json", { cache: "no-store" }),
@@ -187,15 +176,12 @@ window.addEventListener('unhandledrejection', (e) => {
         await arSystem.start();
 
         overlay.style.display = "none";
-        status.textContent = fontReady ? "AR起動 / FONT OK" : "AR起動 / フォント読込中…";
       } catch (e) {
         alert("AR開始に失敗しました。\n" + (e?.message ?? e));
-        status.textContent = "失敗: " + (e?.message ?? e);
+        status.textContent = "失敗:\n" + (e?.message ?? e);
         btn.disabled = false;
       }
     });
   </script>
 </body>
 </html>
-
-
