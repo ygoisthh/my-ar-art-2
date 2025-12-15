@@ -88,7 +88,10 @@
 let fontReady = false;
 fontAsset.addEventListener('loaded', () => {
   fontReady = true;
-  console.log('FONT LOADED');
+  status.textContent = "FONT OK";
+});
+fontAsset.addEventListener('error', () => {
+  status.textContent = "FONT ERROR";
 });
 
     const overlay = document.getElementById('overlay');
@@ -113,6 +116,7 @@ function hideAll(){
   });
 }
 targetEl.addEventListener('targetFound', () => {
+  if (!fontReady) { status.textContent = "フォント読込中…"; return; }
   status.textContent = "FOUND";
   showAll();
   setTimeout(setRenderOrder, 0);
@@ -142,16 +146,6 @@ function waitForSystem(timeoutMs = 6000) {
   });
 }
 
-function waitForSystem(timeoutMs = 6000) {
-  return new Promise((resolve, reject) => {
-    const t0 = Date.now();
-    const timer = setInterval(() => {
-      const sys = sceneEl.systems && sceneEl.systems["mindar-image-system"];
-      if (sys && typeof sys.start === "function") { clearInterval(timer); resolve(sys); }
-      if (Date.now() - t0 > timeoutMs) { clearInterval(timer); reject(new Error("mindar-image-system が見つかりません")); }
-    }, 100);
-  });
-}
     btn.addEventListener('click', async () => {
       try {
         btn.disabled = true;
@@ -181,6 +175,7 @@ if (!res[1].ok) throw new Error("フォントJSONが見つかりません（" + 
   </script>
 </body>
 </html>
+
 
 
 
